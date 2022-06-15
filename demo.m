@@ -54,20 +54,8 @@ for sourceFlowerIndex = 1:4
                 numK = 10;  % number of hidden units 
                 numC = 2;
                 numM = size(trainData,1);                % input data feature dimensions
-                pos = find(trainLabels==1);
-                neg = find(trainLabels==0);
-                numX = [size(pos,2), size(neg,2)];
 
-                theta = initialize_img1(numK, numM, numC, trainData, testData);    % Randomly initialize the parameters
-                W1 = reshape(theta(1:numK*numM), numK, numM);
-                W2 = reshape(theta(numK*numM+1:numK*numM+numK*numC), numC, numK);
-                b1 = theta(2*numK*numM+2*numK*numC+1:2*numK*numM+2*numK*numC+numK);
-                b2 = theta(2*numK*numM+2*numK*numC+numK+1:2*numK*numM+2*numK*numC+numK+numC);
-                W11 = reshape(theta(numK*numM+2*numK*numC+1:2*numK*numM+2*numK*numC), numM, numK);
-                b11 = theta(2*numK*numM+2*numK*numC+2*numK+numC+1:2*numK*numM+2*numK*numC+2*numK+numC+numM);
-                W22 = reshape(theta(numK*numM+numK*numC+1:numK*numM+2*numK*numC), numK, numC);  
-                b22 = theta(2*numK*numM+2*numK*numC+numK+numC+1:2*numK*numM+2*numK*numC+2*numK+numC);
-                
+                theta = initialize_img1(numK, numM, numC, trainData, testData);    % Randomly initialize the parameters     
                 addpath minFunc/
                 
                 options.Method = 'lbfgs'; % Here, we use L-BFGS to optimize our cost function. 
@@ -80,35 +68,23 @@ for sourceFlowerIndex = 1:4
                 alpha = 0.005;%1; 
                 lambda = 0.1;
 
-                [opttheta, cost] = minFunc( @(p) computeObjectAndGradiend4_txt(p, numM, numK,...
-                            numC, numX, alpha, trainData, testData, label1), theta, options);  
+                [opttheta, cost] = minFunc( @(p) computeSparse(p, numM, numK,...
+                            numC, alpha, trainData, testData), theta, options);  
 
-                 % get W1 W2 W11 W22 b1 b2 b11 b22 after training
+                 % get W1 W11 b1 b11 after training
                 W1 = reshape(opttheta(1:numK*numM), numK, numM);
-                W2 = reshape(opttheta(numK*numM+1:numK*numM+numK*numC), numC, numK);
-                W22 = reshape(opttheta(numK*numM+numK*numC+1:numK*numM+2*numK*numC), numK, numC);
-                W11 = reshape(opttheta(numK*numM+2*numK*numC+1:2*numK*numM+2*numK*numC), numM, numK);
                 b1 = opttheta(2*numK*numM+2*numK*numC+1:2*numK*numM+2*numK*numC+numK);
-                b2 = opttheta(2*numK*numM+2*numK*numC+numK+1:2*numK*numM+2*numK*numC+numK+numC);
-                b22 = opttheta(2*numK*numM+2*numK*numC+numK+numC+1:2*numK*numM+2*numK*numC+2*numK+numC);
+                W11 = reshape(opttheta(numK*numM+2*numK*numC+1:2*numK*numM+2*numK*numC), numM, numK);
                 b11 = opttheta(2*numK*numM+2*numK*numC+2*numK+numC+1:2*numK*numM+2*numK*numC+2*numK+numC+numM);
-
                 
+                 %% ======================================================================
+                %  STEP 3
                TwoRoundTrainData = sigmoid(W1 * trainData + b1 * ones(1, size(trainData,2)));
                TwoRoundTrainData = sigmoid(W11 * TwoRoundTrainData + b11 * ones(1, size(TwoRoundTrainData,2)));
                TwoRoundTestData = sigmoid(W1 * testData + b1 * ones(1, size(testData,2)));
                TwoRoundTestData = sigmoid(W11 * TwoRoundTestData + b11 * ones(1, size(TwoRoundTestData,2)));
                
-               W1 = reshape(theta(1:numK*numM), numK, numM);
-                W2 = reshape(theta(numK*numM+1:numK*numM+numK*numC), numC, numK);
-                b1 = theta(2*numK*numM+2*numK*numC+1:2*numK*numM+2*numK*numC+numK);
-                b2 = theta(2*numK*numM+2*numK*numC+numK+1:2*numK*numM+2*numK*numC+numK+numC);
-                W11 = reshape(theta(numK*numM+2*numK*numC+1:2*numK*numM+2*numK*numC), numM, numK);
-                b11 = theta(2*numK*numM+2*numK*numC+2*numK+numC+1:2*numK*numM+2*numK*numC+2*numK+numC+numM);
-                W22 = reshape(theta(numK*numM+numK*numC+1:numK*numM+2*numK*numC), numK, numC);  
-                b22 = theta(2*numK*numM+2*numK*numC+numK+numC+1:2*numK*numM+2*numK*numC+2*numK+numC);
-                
-                 numK = 10;  % number of hidden units 
+                numK = 10;  % number of hidden units 
                 numC = 2;
                 numM = size(trainData,1);                % input data feature dimensions
                 pos = find(trainLabels==2);
@@ -117,14 +93,19 @@ for sourceFlowerIndex = 1:4
   
                beta = 2;%0.5; 
                gamma = 0.0001;
-                options.maxIter = 10;	  % Maximum number of iterations of L-BFGS to run 
+                options.maxIter = 50;	  % Maximum number of iterations of L-BFGS to run 
                 options.display = 'on';
                 options.TolFun  = 1e-3;
                 options.TolX = 1e-1119;
                 options.maxFunEvals = 4000;
+                options.M = MMD(TwoRoundTrainData, TwoRoundTestData, trainLabels, testLabels);
                [opttheta, cost] = minFunc( @(p) computeObjectAndGradiend(p, numM, numK,...
-                            numC, numX, beta, gamma, TwoRoundTrainData, TwoRoundTestData, label1), theta, options);  
+                            numC, numX, beta, gamma, TwoRoundTrainData, TwoRoundTestData), theta, options);  
                
+               W1 = reshape(theta(1:numK*numM), numK, numM);
+               W2 = reshape(theta(numK*numM+1:numK*numM+numK*numC), numC, numK);
+               b1 = theta(2*numK*numM+2*numK*numC+1:2*numK*numM+2*numK*numC+numK);
+               b2 = theta(2*numK*numM+2*numK*numC+numK+1:2*numK*numM+2*numK*numC+numK+numC);
                 
                 hiddeninputs_train = sigmoid(W1 * TwoRoundTrainData + b1 * ones(1, size(TwoRoundTrainData,2)));
                 hiddeninputs_test = sigmoid(W1 * TwoRoundTestData + b1 * ones(1, size(TwoRoundTestData,2)));
