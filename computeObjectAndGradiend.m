@@ -1,4 +1,4 @@
-function [object,grad] = computeObjectAndGradiend(theta, numM, numK, numC, numX, beta, gamma, traindata, testdata, trainlabel)
+function [object,grad] = computeObjectAndGradiend(theta, numM, numK, numC, numX, beta, gamma, traindata, testdata)
 
     % convert theta to the (W1 W2 W11 W22 b1 b2 b11 b22) matrix/vector format
 	W1 = reshape(theta(1:numK*numM), numK, numM);
